@@ -175,6 +175,11 @@ namespace Microsoft.Xna.Framework
         {
             CompositionTarget.Rendering += (o, a) =>
             {
+                if (MetroGameWindow.Instance.IsExiting)
+                {
+                    RaiseAsyncRunLoopEnded();
+                }
+
                 MetroGameWindow.Instance.Tick();
             };
         }

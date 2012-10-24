@@ -38,6 +38,7 @@ purpose and non-infringement.
 */
 #endregion License
 
+using SharpDX.DXGI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -85,7 +86,10 @@ namespace Microsoft.Xna.Framework.Graphics
         public void Dispose()
         {
         }
-
+#if WINRT
+        private DisplayMode currentDisplayMode;
+        private bool initDisplayMode = false;
+#endif
         public DisplayMode CurrentDisplayMode
         {
             get
@@ -109,6 +113,23 @@ namespace Microsoft.Xna.Framework.Graphics
 #elif WINDOWS || LINUX
 
                 return new DisplayMode(OpenTK.DisplayDevice.Default.Width, OpenTK.DisplayDevice.Default.Height, (int)OpenTK.DisplayDevice.Default.RefreshRate, SurfaceFormat.Color);
+#elif WINRT
+                if (!initDisplayMode)
+                {
+                    var factory = new SharpDX.DXGI.Factory1();
+                    foreach (var adapterOutput in factory.Adapters1[0].Outputs)
+                    {
+                        if (adapterOutput != null)
+                        {
+                            currentDisplayMode = new DisplayMode(adapterOutput.Description.DesktopBounds.Right,
+                                                    adapterOutput.Description.DesktopBounds.Bottom,
+                                                    60, SurfaceFormat.Color);
+                        }
+                    }
+                    initDisplayMode = true;
+                }
+
+                return currentDisplayMode;
 #else
                 return new DisplayMode(800, 600, 60, SurfaceFormat.Color);
 #endif
